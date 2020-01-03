@@ -20,6 +20,9 @@ const defaultOpts = {
 	handle: null,
 	highlightInputs: false,
 
+    // Apply a constraint for a movement
+    constrainFunc: null,
+
 	// events
 	onMouseDown: null,
 	onMouseMove: null,
@@ -59,6 +62,11 @@ class Displace {
 	}
 }
 
+function defConstrain(el, x, y)
+{
+    return this.opts.constrain ? { x: this.data.xClamp(x), y: this.data.yClamp(y) } : { x: x, y: y };
+}
+
 function setup(){
 	const el = this.el;
 	const opts = this.opts || defaultOpts;
@@ -94,10 +102,15 @@ function setup(){
 
 		data.xClamp = generateClamp(minX, maxX);
 		data.yClamp = generateClamp(minY, maxY);
+        data.clampLimit = { x:[minX, maxX], y:[minY, maxY] };
+
 	}
+    if (opts.constrainFunc === null) opts.constrainFunc = defConstrain;
+    
 
 	this.opts = opts;
 	this.data = data;
+   
 	this.events = {
 		// mouse events
 		mousedown: mousedown.bind(this),

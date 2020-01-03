@@ -33,7 +33,8 @@ displace(el);
 `// constrained to parent container
 const el = document.querySelector('.moveable');
 const options = {
-    constrain: true
+    constrain: true,
+    constrainFunc: function(el, x, y) { return { x:Math.min(Math.max(Math.round(x / 64) * 64, this.data.clampLimit.x[0]), this.data.clampLimit.x[1]), y: this.data.down.y }}
 };
 displace(el, options);
 `,

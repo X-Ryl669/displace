@@ -1,6 +1,6 @@
 /*!
  * displacejs.js 1.2.4 - Tiny javascript library to create moveable DOM elements.
- * Copyright (c) 2017 Catalin Covic - https://github.com/catc/displace
+ * Copyright (c) 2018 Catalin Covic - https://github.com/catc/displace
  * License: MIT
  */
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -57,7 +57,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -69,9 +69,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = _displace2.default;
 
-/***/ },
+/***/ }),
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -90,6 +90,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		relativeTo: null,
 		handle: null,
 		highlightInputs: false,
+
+		// Apply a constraint for a movement
+		constrainFunc: null,
 
 		// events
 		onMouseDown: null,
@@ -134,6 +137,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		return Displace;
 	}();
 
+	function defConstrain(el, x, y) {
+		return this.opts.constrain ? { x: this.data.xClamp(x), y: this.data.yClamp(y) } : { x: x, y: y };
+	}
+
 	function setup() {
 		var el = this.el;
 		var opts = this.opts || defaultOpts;
@@ -169,10 +176,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 			data.xClamp = (0, _utils.generateClamp)(minX, maxX);
 			data.yClamp = (0, _utils.generateClamp)(minY, maxY);
+			data.clampLimit = { x: [minX, maxX], y: [minY, maxY] };
 		}
+		if (opts.constrainFunc === null) opts.constrainFunc = defConstrain;
 
 		this.opts = opts;
 		this.data = data;
+
 		this.events = {
 			// mouse events
 			mousedown: _events.mousedown.bind(this),
@@ -194,9 +204,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		return new Displace(el, opts);
 	};
 
-/***/ },
+/***/ }),
 /* 2 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	'use strict';
 
@@ -232,9 +242,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		return window.getComputedStyle(el).position === 'relative';
 	}
 
-/***/ },
+/***/ }),
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -272,6 +282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		var wOff = e.clientX - el.offsetLeft;
 		var hOff = e.clientY - el.offsetTop;
+		this.data.down = { x: el.offsetLeft, y: el.offsetTop, dx: wOff, dy: hOff };
 
 		events.mousemove = mousemove.bind(this, wOff, hOff);
 
@@ -290,13 +301,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 		var x = e.clientX - offsetW;
 		var y = e.clientY - offsetH;
-
-		if (opts.constrain) {
-			// clamp values if out of range
-			x = data.xClamp(x);
-			y = data.yClamp(y);
-		}
-		move(el, x, y);
+		// clamp values if out of range
+		var p = opts.constrainFunc.call(this, el, x, y);
+		move(el, p.x, p.y);
 
 		// prevent highlighting text when dragging
 		e.preventDefault();
@@ -337,6 +344,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		var touch = e.targetTouches[0];
 		var wOff = touch.clientX - el.offsetLeft;
 		var hOff = touch.clientY - el.offsetTop;
+		this.data.down = { x: el.offsetLeft, y: el.offsetTop, dx: wOff, dy: hOff };
 
 		events.touchmove = touchmove.bind(this, wOff, hOff);
 
@@ -357,13 +365,9 @@ return /******/ (function(modules) { // webpackBootstrap
 		var touch = e.targetTouches[0];
 		var x = touch.clientX - offsetW;
 		var y = touch.clientY - offsetH;
-
-		if (opts.constrain) {
-			// clamp values if out of range
-			x = data.xClamp(x);
-			y = data.yClamp(y);
-		}
-		move(el, x, y);
+		// clamp values if out of range
+		var p = opts.constrainFunc.call(this, el, x, y);
+		move(el, p.x, p.y);
 
 		// prevent highlighting text when dragging
 		e.preventDefault();
@@ -384,7 +388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		document.removeEventListener('touchcancel', events.touchstop, false);
 	};
 
-/***/ }
+/***/ })
 /******/ ])
 });
 ;

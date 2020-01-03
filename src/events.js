@@ -25,6 +25,7 @@ export function mousedown(e){
 
 	let wOff = e.clientX - el.offsetLeft;
 	let hOff = e.clientY - el.offsetTop;
+    this.data.down = { x:el.offsetLeft, y:el.offsetTop, dx: wOff, dy: hOff };
 
 	events.mousemove = mousemove.bind(this, wOff, hOff);
 
@@ -43,13 +44,9 @@ export function mousemove(offsetW, offsetH, e){
 
 	let x = e.clientX - offsetW;
 	let y = e.clientY - offsetH;
-
-	if (opts.constrain){
-		// clamp values if out of range
-		x = data.xClamp(x);
-		y = data.yClamp(y);
-	}
-	move(el, x, y);
+    // clamp values if out of range
+    let p = opts.constrainFunc.call(this, el, x, y);	
+	move(el, p.x, p.y);
 
 	// prevent highlighting text when dragging
 	e.preventDefault();
@@ -91,6 +88,7 @@ export function touchstart(e){
 	const touch = e.targetTouches[0];
 	let wOff = touch.clientX - el.offsetLeft;
 	let hOff = touch.clientY - el.offsetTop;
+    this.data.down = { x:el.offsetLeft, y:el.offsetTop, dx: wOff, dy: hOff };
 
 	events.touchmove = touchmove.bind(this, wOff, hOff);
 
@@ -111,13 +109,9 @@ export function touchmove(offsetW, offsetH, e){
 	const touch = e.targetTouches[0];
 	let x = touch.clientX - offsetW;
 	let y = touch.clientY - offsetH;
-
-	if (opts.constrain){
-		// clamp values if out of range
-		x = data.xClamp(x);
-		y = data.yClamp(y);
-	}
-	move(el, x, y);
+    // clamp values if out of range
+    let p = opts.constrainFunc.call(this, el, x, y);	
+	move(el, p.x, p.y);
 
 	// prevent highlighting text when dragging
 	e.preventDefault();
